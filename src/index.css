@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard GOV Variable", "Pretendard GOV", "Pretendard Variable", Pretendard, -apple-system,
+    BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", system-ui, sans-serif;
+
+  /* 바탕: 흰 종이 위에 연한 구름색 면. 상상대로 서울처럼 밝고 부드럽게 */
+  --color-paper: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f3f5f8;
+  --color-surface-3: #e9edf2;
+  --color-line: #e5e9ef;
+  --color-line-strong: #cfd6e0;
+  --color-ink: #1c2230;
+  --color-ink-muted: #5f6878;
+  --color-ink-faint: #9aa3b2;
+
+  /* 나침반 세 방향 = 기관 유형. 중앙은 정부 청색(KRDS primary-50/60/5), 지자체는 민트, 교육청은 살구색 */
+  --color-compass: #256ef4;
+  --color-compass-deep: #0b50d0;
+  --color-compass-tint: #ecf2fe;
+  --color-compass-band: #f1f6fe;
+
+  --color-mint: #16a169;
+  --color-mint-deep: #10784e;
+  --color-mint-tint: #e0f5ea;
+  --color-mint-band: #eefaf3;
+
+  --color-peach: #f07f36;
+  --color-peach-deep: #c25f19;
+  --color-peach-tint: #fdeadd;
+  --color-peach-band: #fff4ec;
+
+  /* 행동 버튼: 노란 알약(상상대로 서울의 '제안 바로가기') */
+  --color-sun: #ffcc33;
+  --color-sun-deep: #f2b800;
+  --color-sun-tint: #fff5d1;
+
+  /* 신호색: 기간 초과·법령 개정처럼 지금 봐야 하는 것 */
+  --color-signal: #e5503a;
+  --color-signal-deep: #b93b28;
+  --color-signal-tint: #fdebe7;
+
+  /* 최신성 배지(이전 이름 호환) */
+  --color-moss: #16a169;
+  --color-moss-tint: #e0f5ea;
+  --color-amber: #a8740a;
+  --color-amber-tint: #fff3cf;
+
+  /* 분야 타일 보조색 */
+  --color-violet: #6a4fe0;
+  --color-violet-tint: #ece8fd;
+  --color-rose: #d4386a;
+  --color-rose-tint: #fde8ef;
+  --color-teal: #0f8a90;
+  --color-teal-tint: #dcf5f5;
+  --color-slate: #4a5566;
+  --color-slate-tint: #eaeef3;
+
+  --radius-card: 1rem;
+  --radius-tile: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(28 34 48 / 0.04), 0 12px 32px -16px rgb(28 34 48 / 0.14);
+  --shadow-float: 0 20px 50px -20px rgb(28 34 48 / 0.28);
+  --shadow-bar: 0 -8px 24px -16px rgb(28 34 48 / 0.25);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper text-ink font-sans;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-compass);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: var(--color-sun-tint);
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+  textarea {
+    resize: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* 히어로·섹션 밴드: 흰 바탕 위에 아주 연한 파스텔 그라디언트 */
+@utility band-hero {
+  background:
+    radial-gradient(900px 420px at 8% 0%, #ecf2fe 0%, rgb(236 242 254 / 0) 60%),
+    radial-gradient(700px 380px at 95% 100%, #fff1e6 0%, rgb(255 241 230 / 0) 60%),
+    linear-gradient(180deg, #f6f8fc 0%, #f3f6fb 100%);
+}
+
+@utility band-mint {
+  background: linear-gradient(180deg, #eefaf3 0%, #f4fbf7 100%);
+}
+
+@utility band-peach {
+  background: linear-gradient(180deg, #fff4ec 0%, #fff8f3 100%);
+}
+
+@utility band-sky {
+  background: linear-gradient(180deg, #f1f6fe 0%, #f7faff 100%);
+}
+
+@utility snap-row {
+  scroll-snap-type: x mandatory;
+  & > * {
+    scroll-snap-align: start;
+  }
+}
+
+@keyframes compass-idle {
+  0% { transform: rotate(-18deg); }
+  50% { transform: rotate(22deg); }
+  100% { transform: rotate(-18deg); }
+}
+
+@utility animate-compass-idle {
+  animation: compass-idle 6s ease-in-out infinite;
+}
+
+@keyframes ticker-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-ticker-in {
+  animation: ticker-in 320ms ease-out;
+}

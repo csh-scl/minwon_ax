@@ -1,0 +1,20 @@
+node_modules
+dist
+.env
+.env.*
+*.local
+.DS_Store
+*.tsbuildinfo
+
+# Local tooling and deployment state
+.vercel/
+.sites-checkout/
+.openai/
+__pycache__/
+*.pyc
+
+# Source materials (keep public/data/ for the website)
+/data/
+/references/
+*.docx
+*.pdf

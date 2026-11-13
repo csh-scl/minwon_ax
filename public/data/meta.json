@@ -1,0 +1,118 @@
+{
+ "sourceCount": 21845,
+ "caseCount": 780,
+ "policyCount": 215,
+ "agencyCount": 285,
+ "topics": {
+  "housing-rent": {
+   "label": "전월세·보증금",
+   "group": "housing"
+  },
+  "housing-apt": {
+   "label": "아파트 관리·층간소음",
+   "group": "housing"
+  },
+  "housing-subscription": {
+   "label": "청약·분양",
+   "group": "housing"
+  },
+  "housing-redevelop": {
+   "label": "재개발·재건축",
+   "group": "housing"
+  },
+  "housing-public": {
+   "label": "공공임대·주거복지",
+   "group": "housing"
+  },
+  "care": {
+   "label": "돌봄·방과후",
+   "group": "life"
+  },
+  "school": {
+   "label": "학교·교육",
+   "group": "life"
+  },
+  "streetlight": {
+   "label": "가로등·보안등",
+   "group": "town"
+  },
+  "road": {
+   "label": "도로·보도",
+   "group": "town"
+  },
+  "parking": {
+   "label": "주차·불법주정차",
+   "group": "town"
+  },
+  "transit": {
+   "label": "버스·대중교통",
+   "group": "town"
+  },
+  "noise": {
+   "label": "소음·공사",
+   "group": "town"
+  },
+  "waste": {
+   "label": "쓰레기·폐기물",
+   "group": "town"
+  },
+  "park": {
+   "label": "공원·녹지",
+   "group": "town"
+  },
+  "fire": {
+   "label": "소방·안전",
+   "group": "safety"
+  },
+  "import-food": {
+   "label": "수입식품·식품",
+   "group": "business"
+  },
+  "tax": {
+   "label": "세금·부가세",
+   "group": "business"
+  },
+  "business": {
+   "label": "영업·인허가",
+   "group": "business"
+  },
+  "building": {
+   "label": "건축·용도변경",
+   "group": "housing"
+  },
+  "car": {
+   "label": "자동차·검사",
+   "group": "life"
+  },
+  "welfare": {
+   "label": "복지·지원금",
+   "group": "life"
+  },
+  "civil-defense": {
+   "label": "민방위·병역",
+   "group": "life"
+  },
+  "documents": {
+   "label": "증명서·등록",
+   "group": "life"
+  },
+  "pets": {
+   "label": "반려동물",
+   "group": "life"
+  },
+  "energy": {
+   "label": "전기·에너지",
+   "group": "life"
+  },
+  "labor": {
+   "label": "산업안전·노동",
+   "group": "business"
+  },
+  "environment": {
+   "label": "환경·대기",
+   "group": "town"
+  }
+ },
+ "builtAt": "2026-11-09",
+ "source": "국민권익위원회 국민신문고 민원질의응답 원문데이터(공공데이터포털)"
+}
