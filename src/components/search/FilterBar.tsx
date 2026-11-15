@@ -1,21 +1,19 @@
 import { Chip } from '@/components/ui/Chip'
-import { freshnessOf, hasLawChange } from '@/services/lawService'
+import { freshnessOf } from '@/services/lawService'
 import type { AgencyType, Freshness, SearchHit } from '@/types'
 
 export interface SearchFilters {
   type: 'all' | AgencyType
   freshness: 'all' | Freshness
-  lawChanged: boolean
   sort: 'relevance' | 'recent' | 'views'
 }
 
-export const DEFAULT_FILTERS: SearchFilters = { type: 'all', freshness: 'all', lawChanged: false, sort: 'relevance' }
+export const DEFAULT_FILTERS: SearchFilters = { type: 'all', freshness: 'all', sort: 'relevance' }
 
 export function applyFilters(hits: SearchHit[], f: SearchFilters): SearchHit[] {
   let out = hits.filter((h) => {
     if (f.type !== 'all' && h.item.agencyType !== f.type) return false
-    if (f.freshness !== 'all' && freshnessOf(h.item.answeredAt).level !== f.freshness) return false
-    if (f.lawChanged && !hasLawChange(h.item)) return false
+    if (f.freshness !== 'all' && freshnessOf(h.item).level !== f.freshness) return false
     return true
   })
   if (f.sort === 'recent') out = [...out].sort((a, b) => b.item.answeredAt.localeCompare(a.item.answeredAt))
@@ -33,6 +31,7 @@ const TYPE_OPTIONS: { key: SearchFilters['type']; label: string }[] = [
 const FRESH_OPTIONS: { key: Freshness; label: string }[] = [
   { key: 'fresh', label: '최신 답변' },
   { key: 'check', label: '확인 권장' },
+  { key: 'changed', label: '법령 변경' },
 ]
 
 interface FilterBarProps {
@@ -57,9 +56,6 @@ export function FilterBar({ value, onChange }: FilterBarProps) {
             {o.label}
           </Chip>
         ))}
-        <Chip active={value.lawChanged} onClick={() => set({ lawChanged: !value.lawChanged })} tone="white">
-          법령 변경
-        </Chip>
       </div>
       <label className="flex shrink-0 items-center gap-1.5 text-[13px] text-ink-muted">
         <span className="sr-only">정렬</span>

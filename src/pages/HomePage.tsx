@@ -36,7 +36,7 @@ export function HomePage() {
       </Band>
 
       <Container className="mt-14">
-        <SectionHead sub="민원 사례를 분야별로 모았어요. 관심 있는 분야를 선택해 많이 본 사례를 살펴보세요.">분야별 찾기</SectionHead>
+        <SectionHead sub="민원 사례를 분야별로 모았어요. 관심 있는 분야를 선택해 최근 대표 사례를 살펴보세요.">분야별 찾기</SectionHead>
         <TopicFamilies />
       </Container>
 

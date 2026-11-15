@@ -24,7 +24,7 @@ export function CaseCard({ item, showKind = false, compact = false, className }:
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge tone={TYPE_BADGE[item.agencyType]}>{AGENCY_TYPE_SHORT[item.agencyType]}</Badge>
         {showKind && <Badge tone={item.kind === 'policy' ? 'sun' : 'neutral'}>{item.kind === 'policy' ? '공식 안내' : '민원 사례'}</Badge>}
-        <FreshnessBadge answeredAt={item.answeredAt} />
+        <FreshnessBadge item={item} />
         <span className="ml-auto truncate text-[12.5px] text-ink-faint">{item.agency}</span>
       </div>
       <h3 className="mt-3 text-[18px] font-bold leading-snug tracking-tight">

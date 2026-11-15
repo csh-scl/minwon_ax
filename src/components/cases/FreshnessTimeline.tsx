@@ -2,7 +2,7 @@ import { Icon } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
 import { calendarDaysBetween, todayISO } from '@/lib/businessDays'
 import { formatDate } from '@/lib/format'
-import { amendedLaws, freshnessOf } from '@/services/lawService'
+import { FRESH_MONTHS, agoLabel, amendedLaws, freshnessOf } from '@/services/lawService'
 import type { CaseItem } from '@/types'
 
 /**
@@ -12,7 +12,8 @@ import type { CaseItem } from '@/types'
  */
 export function FreshnessTimeline({ item }: { item: CaseItem }) {
   const today = todayISO()
-  const fresh = freshnessOf(item.answeredAt)
+  const fresh = freshnessOf(item)
+  const ago = agoLabel(fresh.months)
   const changes = amendedLaws(item).filter((c) => c.amendedAt > item.answeredAt && c.amendedAt <= today)
   const span = Math.max(1, calendarDaysBetween(item.answeredAt, today))
   const pos = (iso: string) => Math.min(100, Math.max(0, (calendarDaysBetween(item.answeredAt, iso) / span) * 100))
@@ -21,10 +22,10 @@ export function FreshnessTimeline({ item }: { item: CaseItem }) {
     changes.length > 0
       ? { tone: 'signal', icon: 'alert' as const, text: `답변 뒤에 관련 법령 ${changes.length}건이 바뀌었어요. 최신 법령을 꼭 확인하세요.` }
       : fresh.level === 'fresh'
-        ? { tone: 'mint', icon: 'check' as const, text: '최근 1년 이내 답변이에요. 제공된 자료에서는 이후 법령 개정 내역이 확인되지 않아요.' }
+        ? { tone: 'mint', icon: 'check' as const, text: `${ago} 답변이에요. 제공된 자료에서는 이후 법령 개정 내역이 확인되지 않아요.` }
         : fresh.level === 'check'
-          ? { tone: 'amber', icon: 'info' as const, text: `${fresh.years}년 전 답변이에요. 제도는 그대로일 수 있지만 담당 부서에 한 번 더 확인하면 좋아요.` }
-          : { tone: 'slate', icon: 'clock' as const, text: `${fresh.years}년 전 답변이에요. 오래된 안내라 지금과 다를 수 있어요.` }
+          ? { tone: 'amber', icon: 'info' as const, text: `${ago} 답변이에요. 제도는 그대로일 수 있지만 담당 부서에 한 번 더 확인하면 좋아요.` }
+          : { tone: 'slate', icon: 'clock' as const, text: `${ago} 답변이에요. 1년이 지난 안내라 지금과 다를 수 있어요.` }
 
   const toneClass =
     verdict.tone === 'signal'
@@ -75,6 +76,11 @@ export function FreshnessTimeline({ item }: { item: CaseItem }) {
       <p className={cn('mt-6 flex items-start gap-2 rounded-2xl px-4 py-3 text-[14px] font-semibold leading-relaxed', toneClass)}>
         <Icon name={verdict.icon} size={17} className="mt-0.5 shrink-0" />
         {verdict.text}
+      </p>
+      <p className="mt-3 text-[12.5px] leading-relaxed text-ink-faint">
+        판단 기준: 답변 뒤 인용 법령이 바뀌면 <b className="font-semibold text-ink-muted">법령 변경</b>, 그렇지 않으면 답변일부터{' '}
+        {FRESH_MONTHS}개월 이내 <b className="font-semibold text-ink-muted">최신 답변</b> · {FRESH_MONTHS}개월~1년{' '}
+        <b className="font-semibold text-ink-muted">확인 권장</b> · 1년 초과 <b className="font-semibold text-ink-muted">1년 지난 답변</b>
       </p>
     </div>
   )

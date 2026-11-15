@@ -71,12 +71,15 @@ export interface DataMeta {
 }
 
 /** 답변 최신성 */
-export type Freshness = 'fresh' | 'check' | 'old'
+export type Freshness = 'changed' | 'fresh' | 'check' | 'old'
 
 export interface FreshnessInfo {
   level: Freshness
   label: string
-  years: number
+  /** 답변일부터 지난 개월 수 */
+  months: number
+  /** 이 단계로 나눈 기준 한 줄 */
+  criterion: string
 }
 
 export interface LawAmendment {

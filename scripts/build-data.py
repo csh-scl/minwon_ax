@@ -276,14 +276,24 @@ def load_featured():
             "ref": it["ref"],
             "featured": it["family"],
         })
-    # 분야 안에서는 최근 답변이 먼저 보이도록 순위를 매깁니다.
+    # 분야 안에서는 기관 유형(중앙·지자체·교육청)이 분야 안 비율대로 섞이게 하고,
+    # 같은 유형 안에서는 최근 답변이 먼저 오도록 순위를 매깁니다. 첫 화면은 앞 8건만 보여 줍니다.
     by_family = collections.defaultdict(list)
     for c in out:
         by_family[c["featured"]].append(c)
     for lst in by_family.values():
-        lst.sort(key=lambda c: (c["answeredAt"], c["id"]), reverse=True)
-        for i, c in enumerate(lst, 1):
-            c["featuredRank"] = i
+        lanes = collections.defaultdict(list)
+        for c in sorted(lst, key=lambda c: (c["answeredAt"], c["id"]), reverse=True):
+            lanes[c["agencyType"]].append(c)
+        total, taken = len(lst), collections.Counter()
+        for i in range(1, total + 1):
+            # 지금까지 자기 몫보다 가장 덜 나온 유형을 고르고, 같으면 더 최근 답변을 먼저
+            t = min(
+                (t for t in lanes if taken[t] < len(lanes[t])),
+                key=lambda t: ((taken[t] + 0.5) / len(lanes[t]), tuple(-ord(ch) for ch in lanes[t][taken[t]]["answeredAt"])),
+            )
+            lanes[t][taken[t]]["featuredRank"] = i
+            taken[t] += 1
     return out
 
 

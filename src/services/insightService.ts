@@ -37,7 +37,7 @@ export function summarizeHits(hits: SearchHit[]): SearchSummary {
     for (const l of h.item.laws) lawCount.set(l.name, (lawCount.get(l.name) ?? 0) + 1)
     for (const t of h.item.topics) topicCount.set(t, (topicCount.get(t) ?? 0) + 1)
     if (h.item.kind === 'case' && h.item.processingDays != null && h.item.processingDays <= 60) days.push(h.item.processingDays)
-    if (freshnessOf(h.item.answeredAt).level === 'fresh') fresh += 1
+    if (freshnessOf(h.item).level === 'fresh') fresh += 1
     if (hasLawChange(h.item)) lawChanged += 1
   }
   const total = shares.central + shares.local + shares.education || 1

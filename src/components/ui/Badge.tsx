@@ -1,9 +1,10 @@
 import type { HTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
 
-export type BadgeTone = 'fresh' | 'check' | 'old' | 'signal' | 'compass' | 'mint' | 'peach' | 'sun' | 'neutral' | 'ink' | 'white'
+export type BadgeTone = 'changed' | 'fresh' | 'check' | 'old' | 'signal' | 'compass' | 'mint' | 'peach' | 'sun' | 'neutral' | 'ink' | 'white'
 
 const TONE: Record<BadgeTone, string> = {
+  changed: 'bg-signal-tint text-signal-deep',
   fresh: 'bg-mint-tint text-mint-deep',
   check: 'bg-amber-tint text-amber',
   old: 'bg-surface-3 text-ink-muted',

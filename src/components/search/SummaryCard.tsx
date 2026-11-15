@@ -57,7 +57,7 @@ export function SummaryCard({ summary, recommendation, groupLabel, groupJoined, 
     {
       text: (
         <>
-          답변의 <b className="tnum">{freshPct}%</b>가 최근 1년 이내에 작성됐어요
+          답변의 <b className="tnum">{freshPct}%</b>가 최근 6개월 이내 최신 답변이에요
           {summary.lawChanged > 0 ? (
             <span className="text-signal-deep">. {summary.lawChanged}건은 답변 뒤에 관련 법령이 바뀌었어요</span>
           ) : (

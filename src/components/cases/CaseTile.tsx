@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 import { formatDate, formatNumber } from '@/lib/format'
-import { freshnessOf, hasLawChange } from '@/services/lawService'
+import { FreshnessBadge } from './FreshnessBadge'
 import { AGENCY_TYPE_SHORT } from '@/services/recommendationService'
 import type { AgencyType, CaseItem } from '@/types'
 
@@ -13,19 +13,11 @@ const TYPE_BADGE: Record<AgencyType, 'compass' | 'mint' | 'peach'> = { central: 
  * 위에 기관 유형 칩, 가운데 제목, 아래에 숫자(조회·처리일·법령)를 글자로 둡니다. 그림 기호는 쓰지 않습니다.
  */
 export function CaseTile({ item, className }: { item: CaseItem; className?: string }) {
-  const fresh = freshnessOf(item.answeredAt)
-  const changed = hasLawChange(item)
   return (
     <article className={cn('group flex h-full flex-col rounded-card bg-surface-2 p-5 transition-colors hover:bg-surface hover:shadow-card', className)}>
       <div className="flex items-center justify-between gap-2">
         <Badge tone={TYPE_BADGE[item.agencyType]}>{AGENCY_TYPE_SHORT[item.agencyType]}</Badge>
-        {changed ? (
-          <Badge tone="signal">법령 변경</Badge>
-        ) : fresh.level === 'fresh' ? (
-          <Badge tone="white">최신</Badge>
-        ) : (
-          <span className="tnum text-[12px] text-ink-faint">{fresh.label}</span>
-        )}
+        <FreshnessBadge item={item} />
       </div>
       <h3 className="mt-4 text-[17px] font-bold leading-snug tracking-tight">
         <Link to={`/cases/${item.id}`} className="line-clamp-3 hover:text-compass-deep">

@@ -7,19 +7,28 @@ import { FAMILIES, TONE_TILE, type TopicFamily } from '@/config/families'
 import { useAsync } from '@/hooks/useAsync'
 import { cn } from '@/lib/cn'
 import { api } from '@/services/api'
-import type { CaseItem } from '@/types'
+import type { AgencyType, CaseItem } from '@/types'
 
 const byRank = (a: CaseItem, b: CaseItem) => (a.featuredRank ?? 0) - (b.featuredRank ?? 0)
 
-/** 분야별 대표 사례. '전체'는 분야마다 첫 사례를 하나씩 돌아가며 고릅니다. */
+/** '전체' 탭에서 기관 유형이 대표 사례 비율(지자체 90 · 중앙 65 · 교육청 25)에 가깝게 섞이도록 돌아가는 순서 */
+const ALL_TYPE_CYCLE: AgencyType[] = ['local', 'central', 'local', 'education', 'central', 'local', 'central', 'local']
+
+/** 분야별 대표 사례. '전체'는 분야마다 하나씩 돌아가며, 기관 유형도 번갈아 고릅니다. */
 async function loadFamily(f: TopicFamily, limit: number) {
   const cases = await api.getCases()
   const featured = cases.filter((c) => c.featured)
   if (f.slugs.length) return featured.filter((c) => c.featured === f.key).sort(byRank).slice(0, limit)
   const lanes = FAMILIES.filter((x) => x.slugs.length).map((x) => featured.filter((c) => c.featured === x.key).sort(byRank))
+  const used = new Set<string>()
   const mixed: CaseItem[] = []
-  for (let i = 0; mixed.length < limit && lanes.some((l) => l[i]); i++) {
-    for (const lane of lanes) if (lane[i] && mixed.length < limit) mixed.push(lane[i])
+  for (let i = 0; mixed.length < limit && i < lanes.length * 20; i++) {
+    const lane = lanes[i % lanes.length].filter((c) => !used.has(c.id))
+    const want = ALL_TYPE_CYCLE[mixed.length % ALL_TYPE_CYCLE.length]
+    const pick = lane.find((c) => c.agencyType === want) ?? lane[0]
+    if (!pick) continue
+    used.add(pick.id)
+    mixed.push(pick)
   }
   return mixed
 }

@@ -72,7 +72,7 @@ export function CaseDetailPage() {
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Badge tone={TYPE_BADGE[item.agencyType]} size="md">{AGENCY_TYPE_SHORT[item.agencyType]}</Badge>
           <Badge tone={item.kind === 'policy' ? 'sun' : 'white'} size="md">{item.kind === 'policy' ? '공식 안내' : '민원 사례'}</Badge>
-          <FreshnessBadge answeredAt={item.answeredAt} />
+          <FreshnessBadge item={item} size="md" />
           <span className="text-[13px] text-ink-muted">{AGENCY_TYPE_LABEL[item.agencyType]}</span>
         </div>
         <PageTitle className="mt-3 max-w-[52rem] text-[26px] md:text-[34px]">{item.title}</PageTitle>
