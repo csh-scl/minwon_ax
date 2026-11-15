@@ -62,7 +62,7 @@ export function CaseDetailPage() {
     { label: '처리기관', value: item.agency },
     { label: '담당부서', value: shortDept(item.dept, item.agency) || '—' },
     { label: '답변일', value: formatDate(item.answeredAt), num: true },
-    { label: '처리기간', value: item.kind === 'policy' ? '안내 자료' : item.processingDays != null ? `${item.processingDays}일` : '—', num: true },
+    { label: '답변까지 걸린 기간', value: item.kind === 'policy' ? '안내 자료' : item.processingDays != null ? (item.processingDays <= 0 ? '당일 답변' : `${item.processingDays}일`) : '—', num: true },
   ]
 
   return (

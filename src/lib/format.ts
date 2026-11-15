@@ -22,3 +22,8 @@ export function truncate(s: string, max: number): string {
   if (s.length <= max) return s
   return `${s.slice(0, max - 1).trimEnd()}…`
 }
+
+/** 신청일부터 답변일까지 걸린 날(달력 기준). 0일이면 당일 답변 */
+export function formatAnswerSpan(days: number): string {
+  return days <= 0 ? '당일 답변' : `답변까지 ${days}일`
+}

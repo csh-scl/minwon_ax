@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
-import { formatDate, formatNumber } from '@/lib/format'
+import { formatAnswerSpan, formatDate, formatNumber } from '@/lib/format'
 import { AGENCY_TYPE_SHORT } from '@/services/recommendationService'
 import type { AgencyType, CaseItem } from '@/types'
 import { FreshnessBadge } from './FreshnessBadge'
@@ -45,7 +45,7 @@ export function CaseCard({ item, showKind = false, compact = false, className }:
       )}
       <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap pt-4 text-[12.5px] text-ink-faint">
         {item.views > 0 && <span className="tnum">조회 {formatNumber(item.views)}</span>}
-        {item.kind === 'policy' ? <span>안내 자료</span> : item.processingDays != null && <span className="tnum">처리 {item.processingDays}일</span>}
+        {item.kind === 'policy' ? <span>안내 자료</span> : item.processingDays != null && <span className="tnum">{formatAnswerSpan(item.processingDays)}</span>}
         <span className="tnum ml-auto">{formatDate(item.answeredAt)} 답변</span>
       </div>
     </article>
