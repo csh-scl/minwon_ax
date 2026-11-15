@@ -10,7 +10,8 @@ npm install
 npm run dev        # http://localhost:5173
 npm run build      # 타입 검사(tsc -b) + 프로덕션 빌드 → dist/
 npm run preview    # dist/ 미리보기
-npm run data       # data/epeople_faq.json → public/data/*.json 다시 생성 (python3 필요)
+python3 -I scripts/import-db.py <테이블_CSV 폴더>  # 민원 DB 테이블 → data/minwon_db.json (원본이 바뀔 때만)
+npm run data       # data/minwon_db.json → public/data/*.json 다시 생성 (python3 필요)
 ```
 
 ## 화면과 기능
@@ -35,7 +36,7 @@ npm run data       # data/epeople_faq.json → public/data/*.json 다시 생성 
 
 ## 데이터
 
-`data/epeople_faq.json`(국민신문고 질의응답 21,845건)을 `scripts/build-data.py` 가 가공해 `public/data/` 에 둡니다. 앱은 이 JSON 을 fetch 하므로 실제 API 와 같은 구조로 동작합니다.
+민원 DB(국민신문고 질의응답 정제본, 답변 35,246건 · 법령 인용과 법제처 개정 조회 결과 포함)를 `scripts/import-db.py` 가 `data/minwon_db.json` 으로 합치고, `scripts/build-data.py` 가 대표 사례(`scripts/featured-cases.json`, 분야별 20건)와 주제별 표본을 골라 `public/data/` 에 둡니다. `data/` 는 저장소에 올리지 않습니다. 앱은 이 JSON 을 fetch 하므로 실제 API 와 같은 구조로 동작합니다.
 
 | 파일 | 내용 |
 | --- | --- |
@@ -48,7 +49,7 @@ npm run data       # data/epeople_faq.json → public/data/*.json 다시 생성 
 
 ### Mock 으로 보완한 부분
 
-- `src/data/lawAmendments.ts` 답변 이후 개정된 법령 목록 (실제: 법제처 Open API)
+- 법령 개정 여부: 민원 DB를 만들 때 법제처에서 조회한 조문 최종개정일·법령 시행일 (`LawRef.changedAt`)
 - `src/data/groups.ts` 같은 고민 그룹 초기값 (실제: 서버 집계)
 - `src/services/trackingService.ts` 의 예시 민원 2건 (목업 기준)
 - `src/data/holidays.ts` 공휴일(영업일 계산용)

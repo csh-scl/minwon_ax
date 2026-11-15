@@ -1,36 +1,37 @@
 #!/usr/bin/env python3
 """
-민원나침반 샘플 데이터 빌드 스크립트
+민원나침반 데이터 빌드 스크립트
 
-입력: data/epeople_faq.json (국민신문고 민원 질의응답 원문, 약 2만 건)
-      data/featured_source.json (분야별 대표 사례 원문, scripts/extract-featured.py 로 만듦)
-출력: public/data/cases.json     - 화면에 쓰는 선별 사례(주제별 표본)
+입력: data/minwon_db.json       - 민원 DB 원본(답변 약 3만 5천 건). scripts/import-db.py 로 만듦
+      scripts/featured-cases.json - 분야별 대표 사례로 고른 답변ID(분야마다 20건)
+출력: public/data/cases.json     - 화면에 쓰는 사례(대표 사례 + 주제별 표본)
       public/data/agencies.json  - 기관별 통계(건수·유형·처리기간·주요 부서·주요 법령)
-      public/data/regions.json   - 시도/시군구 목록(데이터에서 추출 + 보완)
+      public/data/regions.json   - 시도/시군구 목록
       public/data/meta.json      - 빌드 정보
 
-실행: python3 -I scripts/build-data.py
+실행: python3 -I scripts/import-db.py <테이블_CSV 폴더>   (원본이 바뀌었을 때만)
+      python3 -I scripts/build-data.py
 """
 import collections
 import hashlib
 import json
+import math
 import os
 import re
-import statistics
 from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "data", "epeople_faq.json")
-FEATURED_SRC = os.path.join(ROOT, "data", "featured_source.json")
+SRC = os.path.join(ROOT, "data", "minwon_db.json")
+FEATURED_IDS = os.path.join(ROOT, "scripts", "featured-cases.json")
 OUT = os.path.join(ROOT, "public", "data")
 
 SIDO = [
-    "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시",
-    "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "강원도", "충청북도",
-    "충청남도", "전북특별자치도", "전라북도", "전라남도", "경상북도", "경상남도",
-    "제주특별자치도",
+    "서울특별시", "부산광역시", "대구광역시", "인천광역시", "대전광역시",
+    "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", "충청북도", "충청남도",
+    "전북특별자치도", "전남광주통합특별시", "경상북도", "경상남도", "제주특별자치도",
 ]
-SIDO_ALIAS = {"강원도": "강원특별자치도", "전라북도": "전북특별자치도"}
+# 2026년 광주광역시·전라남도 통합. 교육청은 둘로 남아 있습니다.
+EDUCATION_OFFICE = {"전남광주통합특별시": "광주광역시교육청 · 전라남도교육청"}
 
 SEOUL_DISTRICTS = [
     "강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구",
@@ -74,8 +75,10 @@ TOPICS = {
     "labor": ("산업안전·노동", ["안전보건", "산업재해", "근로자", "임금"], "business"),
     "environment": ("환경·대기", ["미세먼지", "악취", "하천", "수질", "대기"], "town"),
 }
-TOPIC_QUOTA = 22
-HOUSING_QUOTA = 30
+# 주제별 표본 정원: 원본에서 그 주제 제목이 차지하는 비율대로 나누되, 주제마다 최소·최대를 둡니다.
+TOPIC_TOTAL = 560
+TOPIC_MIN, TOPIC_MAX = 10, 60
+SAMPLE_SIZE = 780
 
 BOILER = [
     r"안녕하십니까", r"국민신문고를 통해", r"국민신문고를 통하여", r"신청하신 민원", r"관심과 애정",
@@ -101,23 +104,6 @@ def strip_pictographs(t: str) -> str:
     t = PICTO_ARROW_RE.sub("→", t)
     t = PICTO_DROP_RE.sub(" ", t)
     return re.sub(r"\s+", " ", t)
-
-
-def agency_type(agency: str) -> str:
-    if "교육청" in agency or "교육지원청" in agency:
-        return "education"
-    for s in SIDO:
-        if agency.startswith(s):
-            return "local"
-    return "central"
-
-
-def split_region(agency: str):
-    for s in SIDO:
-        if agency.startswith(s):
-            rest = agency[len(s):].strip()
-            return SIDO_ALIAS.get(s, s), rest
-    return None, None
 
 
 def norm_ws(t: str) -> str:
@@ -172,31 +158,6 @@ def summarize(answer: str) -> str:
     return out
 
 
-def parse_laws(laws):
-    out = []
-    seen = set()
-    for raw in laws or []:
-        parts = [p.strip() for p in raw.split(" / ")]
-        name = parts[0]
-        article = parts[1] if len(parts) > 1 else ""
-        name = re.sub(r"\s*/\s*$", "", name).strip("「」 ")
-        if not name:
-            continue
-        key = (name, article)
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append({"name": name, "article": article})
-    return out
-
-
-def days_between(a: str, b: str):
-    try:
-        return (date.fromisoformat(b) - date.fromisoformat(a)).days
-    except Exception:
-        return None
-
-
 def topics_of(title: str):
     found = []
     for slug, (_, kws, _) in TOPICS.items():
@@ -211,15 +172,17 @@ def quality(it) -> float:
         return -1
     if not (120 <= len(answer) <= 3200):
         return -1
-    if re.search(r"(뇌의 기본|유교가|OOO-OOOO)", title):
+    if re.search(r"(뇌의 기본|유교가|OOO-OOOO|\[이름\]|\[신청번호\])", title):
         return -1
-    v = int(it["views"]) if str(it["views"]).isdigit() else 0
+    v = it["views"]
     score = 0.0
     score += 2.0 if it["laws"] else 0.0
     score += min(3.0, (v ** 0.5) / 10)
     score += 1.0 if 10 <= len(title) <= 45 else 0.0
     score += 1.0 if 250 <= len(answer) <= 1500 else 0.0
     score += 0.5 if "?" in title or "문의" in title or "궁금" in title else 0.0
+    # 최근 답변일수록 지금도 맞을 가능성이 높습니다.
+    score += 1.5 if it["answeredAt"] >= "2026-03" else 0.8 if it["answeredAt"] >= "2025-09" else 0.0
     return score
 
 
@@ -247,35 +210,53 @@ FAMILY_DEFAULT_SLUG = {
 }
 
 
-def load_featured():
-    """data/featured_source.json(분야별 대표 사례 원문)을 cases.json 형식으로 바꿉니다."""
-    if not os.path.exists(FEATURED_SRC):
-        return []
-    with open(FEATURED_SRC, encoding="utf-8") as f:
-        items = json.load(f)
+def kind_of(it, reason=""):
+    """정책 질의응답과, 기관이 같은 날 올린 안내형 답변(FAQ)은 '공식 안내', 나머지는 '민원 사례'"""
+    return "policy" if it["workType"] == "POLICY" or reason == "faq" else "case"
+
+
+def processing_days(it):
+    """신청일부터 답변일까지 달력 일수. 민원질의응답만 믿을 수 있어 그 밖에는 비웁니다."""
+    return it["calendarDays"] if it["workType"] == "MINWON" else None
+
+
+def case_of(it, case_id, reason=""):
+    return {
+        "id": case_id,
+        "title": norm_ws(it["title"]),
+        "agency": it["agency"],
+        "agencyType": it["agencyType"],
+        "dept": it["dept"],
+        "sido": it["sido"],
+        "kind": kind_of(it, reason),
+        "askedAt": it["askedAt"],
+        "answeredAt": it["answeredAt"],
+        "views": it["views"],
+        "processingDays": processing_days(it),
+        "laws": it["laws"][:6],
+        "summary": summarize(it["answer"]),
+        "answer": clean_answer(it["answer"]),
+        "topics": topics_of(it["title"]),
+        "ref": it["ref"],
+    }
+
+
+def load_featured(by_id):
+    """scripts/featured-cases.json 에 고른 답변을 대표 사례로 만듭니다."""
+    with open(FEATURED_IDS, encoding="utf-8") as f:
+        picks = json.load(f)
     out = []
-    for it in items:
-        slugs = FAMILY_SLUGS[it["family"]]
-        topics = [t for t in topics_of(it["title"]) if t in slugs] or [t for t in topics_of(it["title"] + " " + it["question"][:200]) if t in slugs]
-        out.append({
-            "id": f"f{it['answerId']}",
-            "title": norm_ws(it["title"]),
-            "agency": it["agency"],
-            "agencyType": it["agencyType"],
-            "dept": it["dept"],
-            "sido": it["sido"],
-            "kind": "policy" if it["workType"] == "POLICY" else "case",
-            "askedAt": it["askedAt"],
-            "answeredAt": it["answeredAt"],
-            "views": it["views"],
-            "processingDays": days_between(it["askedAt"], it["answeredAt"]),
-            "laws": it["laws"],
-            "summary": summarize(it["answer"]),
-            "answer": clean_answer(it["answer"]),
-            "topics": topics or [FAMILY_DEFAULT_SLUG[it["family"]]],
-            "ref": it["ref"],
-            "featured": it["family"],
-        })
+    for family, ids in picks.items():
+        slugs = FAMILY_SLUGS[family]
+        for aid in ids:
+            it = by_id.get(aid)
+            if not it:
+                raise SystemExit(f"대표 사례 답변ID {aid} 를 원본에서 찾지 못했습니다.")
+            c = case_of(it, f"f{aid}")
+            topics = [t for t in c["topics"] if t in slugs] or [t for t in topics_of(it["title"] + " " + it["question"][:200]) if t in slugs]
+            c["topics"] = topics or [FAMILY_DEFAULT_SLUG[family]]
+            c["featured"] = family
+            out.append(c)
     # 분야 안에서는 기관 유형(중앙·지자체·교육청)이 분야 안 비율대로 섞이게 하고,
     # 같은 유형 안에서는 최근 답변이 먼저 오도록 순위를 매깁니다. 첫 화면은 앞 8건만 보여 줍니다.
     by_family = collections.defaultdict(list)
@@ -301,153 +282,142 @@ def norm_title(t):
     return re.sub(r"[^가-힣a-z0-9]", "", t.lower())[:28]
 
 
+def short_sido(s):
+    for suffix in ("통합특별시", "특별자치시", "특별자치도", "특별시", "광역시"):
+        s = s.replace(suffix, "")
+    return "전남광주" if s.startswith("전남광주") else s
+
+
 def main():
     with open(SRC, encoding="utf-8") as f:
-        items = json.load(f)
-    print(f"원본 {len(items):,}건")
+        db = json.load(f)
+    items = db["answers"]
+    by_id = {it["id"]: it for it in items}
+    print(f"원본 답변 {len(items):,}건")
 
-    # ---------- 기관 통계 (전체 데이터 기준) ----------
+    # ---------- 기관 통계 (전체 답변 기준) ----------
+    legal = {s["name"]: s for s in db["agencyStats"]}
+    region_of = {a["name"]: a for a in db["localAgencies"]}
     by_agency = collections.defaultdict(list)
     for it in items:
         by_agency[it["agency"]].append(it)
 
     agencies = []
     for name, lst in by_agency.items():
-        atype = agency_type(name)
-        ds = [d for d in (days_between(x["qdate"], x["adate"]) for x in lst) if d is not None and d >= 0]
-        median_days = statistics.median(ds) if ds else None
-        within14 = round(100 * sum(1 for d in ds if d <= 14) / len(ds)) if ds else None
+        atype = lst[0]["agencyType"]
+        cal = sorted(d for d in (x["calendarDays"] for x in lst if x["workType"] == "MINWON") if d is not None)
+        leg = [d for d in (x["legalDays"] for x in lst if x["workType"] == "MINWON") if d is not None]
         depts = collections.Counter(x["dept"] for x in lst if x["dept"]).most_common(3)
-        laws = collections.Counter(l.split(" / ")[0].strip("「」 ") for x in lst for l in x["laws"]).most_common(3)
-        # 예상 답변기간(영업일): 데이터가 신뢰할 만하면 데이터 기반, 아니면 결정적 Mock
-        if median_days is not None and median_days <= 30 and len(ds) >= 5:
-            expected = max(1, min(14, round(median_days * 5 / 7)))
+        laws = collections.Counter(l["name"] for x in lst for l in x["laws"]).most_common(3)
+        # 예상 처리기간(영업일): 이 기관 답변의 90%가 나온 법정 처리일수. 답변이 적으면 결정적 추정값
+        st = legal.get(name)
+        if st and st["answers"] >= 5:
+            expected = max(1, min(14, math.ceil(st["p90LegalDays"])))
             source = "data"
         else:
             expected = stable_int(name, 3, 12) if atype == "central" else stable_int(name, 4, 14)
             source = "mock"
-        sido, district = split_region(name)
+        reg = region_of.get(name) or {}
         agencies.append({
             "name": name,
             "type": atype,
             "count": len(lst),
-            "medianDays": median_days,
-            "within14Pct": within14,
+            "medianDays": cal[len(cal) // 2] if cal else None,
+            "within14Pct": round(100 * sum(1 for d in leg if d <= 14) / len(leg)) if leg else None,
             "expectedBusinessDays": expected,
             "estimateSource": source,
             "topDepts": [d for d, _ in depts],
             "topLaws": [l for l, _ in laws],
-            "sido": sido,
-            "district": district or None,
+            "sido": reg.get("sido") or lst[0]["sido"],
+            "district": reg.get("district") or lst[0]["district"],
         })
     agencies.sort(key=lambda a: -a["count"])
 
-    # ---------- 사례 선별 ----------
+    # ---------- 대표 사례(분야별 20건) ----------
+    featured = load_featured(by_id)
+    featured_ids = {c["id"][1:] for c in featured}
+    featured_titles = {norm_title(c["title"]) for c in featured}
+
+    # ---------- 주제별 표본 ----------
     scored = []
     for it in items:
-        q = quality(it)
-        if q < 0:
+        if it["id"] in featured_ids or norm_title(it["title"]) in featured_titles:
             continue
-        scored.append((q, it))
-    scored.sort(key=lambda x: -x[0])
+        q = quality(it)
+        if q >= 0:
+            scored.append((q, it))
+    scored.sort(key=lambda x: (-x[0], x[1]["id"]))
+
+    # 주제 정원: 품질 기준을 통과한 원본에서 주제별 제목 비율대로
+    pool = collections.Counter(t for _, it in scored for t in topics_of(it["title"]))
+    pool_total = sum(pool.values()) or 1
+    quota = {slug: max(TOPIC_MIN, min(TOPIC_MAX, round(TOPIC_TOTAL * pool[slug] / pool_total))) for slug in TOPICS}
 
     picked = {}
-    seen_titles = set()
+    seen_titles = set(featured_titles)
     per_agency = collections.Counter()
 
     def take(it, reason):
         key = norm_title(it["title"])
-        if key in seen_titles or it["no"] in picked:
+        if key in seen_titles or it["id"] in picked:
             return False
-        if per_agency[it["agency"]] >= 60:
+        if per_agency[it["agency"]] >= 40:
             return False
         seen_titles.add(key)
         per_agency[it["agency"]] += 1
-        picked[it["no"]] = (it, reason)
+        picked[it["id"]] = (it, reason)
         return True
 
     # 1) 주제별 표본
-    for slug, (_, kws, group) in TOPICS.items():
-        quota = HOUSING_QUOTA if group == "housing" else TOPIC_QUOTA
+    for slug, (_, kws, _) in TOPICS.items():
         n = 0
         for q, it in scored:
-            if n >= quota:
+            if n >= quota[slug]:
                 break
-            if any(k in it["title"] for k in kws):
-                if take(it, slug):
-                    n += 1
+            if any(k in it["title"] for k in kws) and take(it, slug):
+                n += 1
     # 2) 정책 질의응답(공식 안내)
     n = 0
     for q, it in scored:
-        if it["dutySctnNm"] == "tqaplcy" and take(it, "policy"):
+        if it["workType"] == "POLICY" and take(it, "policy"):
             n += 1
             if n >= 50:
                 break
-    # 3) 당일 답변 안내형(기관 FAQ 성격) - 기관별 최대 6건
+    # 3) 같은 날 올린 안내형 답변(기관 FAQ 성격) - 기관별 최대 6건
     cnt = collections.Counter()
     n = 0
     for q, it in scored:
-        if it["dutySctnNm"] == "tqapttn" and it["qdate"] == it["adate"] and cnt[it["agency"]] < 6:
-            if take(it, "faq"):
-                cnt[it["agency"]] += 1
-                n += 1
-                if n >= 100:
-                    break
-    # 4) 조회수 상위로 보충
+        if it["workType"] == "MINWON" and it["calendarDays"] == 0 and cnt[it["agency"]] < 6 and take(it, "faq"):
+            cnt[it["agency"]] += 1
+            n += 1
+            if n >= 100:
+                break
+    # 4) 점수 순으로 보충
     for q, it in scored:
-        if len(picked) >= 780:
+        if len(picked) >= SAMPLE_SIZE:
             break
         take(it, "popular")
 
-    cases = []
-    for no, (it, reason) in picked.items():
-        kind = "policy" if it["dutySctnNm"] == "tqaplcy" or (it["dutySctnNm"] == "tqapttn" and it["qdate"] == it["adate"]) else "case"
-        sido, district = split_region(it["agency"])
-        cases.append({
-            "id": str(it["no"]),
-            "title": norm_ws(it["title"]),
-            "agency": it["agency"],
-            "agencyType": agency_type(it["agency"]),
-            "dept": it["dept"],
-            "sido": sido,
-            "kind": kind,
-            "askedAt": it["qdate"],
-            "answeredAt": it["adate"],
-            "views": int(it["views"]) if str(it["views"]).isdigit() else 0,
-            "processingDays": days_between(it["qdate"], it["adate"]),
-            "laws": parse_laws(it["laws"]),
-            "summary": summarize(it["answer"]),
-            "answer": clean_answer(it["answer"]),
-            "topics": topics_of(it["title"]),
-            "ref": it["epUnionSn"],
-        })
+    cases = [case_of(it, it["id"], reason) for it, reason in picked.values()]
     cases.sort(key=lambda c: c["answeredAt"], reverse=True)
-
-    # ---------- 대표 사례(분야별 20건, scripts/extract-featured.py 로 추출) ----------
-    featured = load_featured()
-    if featured:
-        featured_titles = {norm_title(c["title"]) for c in featured}
-        cases = [c for c in cases if norm_title(c["title"]) not in featured_titles] + featured
-    else:
-        print("주의: data/featured_source.json 이 없어 대표 사례 없이 빌드합니다.")
+    cases += featured
 
     # ---------- 지역 ----------
     districts = collections.defaultdict(set)
-    for a in agencies:
-        if a["type"] == "local" and a["sido"] and a["district"]:
+    for a in db["localAgencies"]:
+        if a["district"]:
             districts[a["sido"]].add(a["district"])
     districts["서울특별시"].update(SEOUL_DISTRICTS)
     districts["경기도"].update(GYEONGGI_DISTRICTS)
-    regions = []
-    for s in SIDO:
-        if s in SIDO_ALIAS:
-            continue
-        regions.append({
+    regions = [
+        {
             "sido": s,
-            "shortName": s.replace("특별자치시", "").replace("특별자치도", "").replace("특별시", "").replace("광역시", ""),
-            "educationOffice": f"{s}교육청",
+            "shortName": short_sido(s),
+            "educationOffice": EDUCATION_OFFICE.get(s, f"{s}교육청"),
             "districts": sorted(districts.get(s, [])),
-        })
+        }
+        for s in SIDO
+    ]
 
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(OUT, "cases.json"), "w", encoding="utf-8") as f:
@@ -456,22 +426,25 @@ def main():
         json.dump(agencies, f, ensure_ascii=False, separators=(",", ":"))
     with open(os.path.join(OUT, "regions.json"), "w", encoding="utf-8") as f:
         json.dump(regions, f, ensure_ascii=False, indent=1)
+    answered = sorted(it["answeredAt"] for it in items)
     meta = {
         "sourceCount": len(items),
         "caseCount": len(cases),
         "policyCount": sum(1 for c in cases if c["kind"] == "policy"),
-        "featuredCount": sum(1 for c in cases if c.get("featured")),
+        "featuredCount": len(featured),
         "agencyCount": len(agencies),
         "topics": {slug: {"label": label, "group": group} for slug, (label, _, group) in TOPICS.items()},
         "builtAt": date.today().isoformat(),
-        "source": "국민권익위원회 국민신문고 민원질의응답 원문데이터(공공데이터포털)",
+        "answeredFrom": answered[0],
+        "answeredTo": answered[-1],
+        "lawCheckedAt": db["lawCheckedAt"],
+        "source": "국민권익위원회 국민신문고 민원질의응답 원문데이터(공공데이터포털) 정제본 · 법령 개정 정보: 법제처 국가법령정보",
     }
     with open(os.path.join(OUT, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=1)
 
-    print(f"선별 사례 {len(cases):,}건 (공식 안내 {meta['policyCount']}건), 기관 {len(agencies)}곳")
-    tc = collections.Counter(t for c in cases for t in c["topics"])
-    print("주제별:", dict(tc))
+    print(f"사례 {len(cases):,}건 (대표 {len(featured)} · 표본 {len(picked)} · 공식 안내 {meta['policyCount']}), 기관 {len(agencies)}곳")
+    print("주제 정원:", quota)
     print("유형별:", collections.Counter(c["agencyType"] for c in cases))
     print("법령 인용 사례:", sum(1 for c in cases if c["laws"]))
     print("cases.json 크기:", round(os.path.getsize(os.path.join(OUT, "cases.json")) / 1024), "KB")

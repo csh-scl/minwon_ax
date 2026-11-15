@@ -31,6 +31,14 @@ const TYPE_HINTS: Record<AgencyType, RegExp> = {
 }
 const HINT_WEIGHT = 1.8
 
+/** 광주광역시·전라남도는 2026년 전남광주통합특별시로 합쳐졌지만 교육청은 둘로 남아 있습니다. */
+const GWANGJU_DISTRICTS = new Set(['광산구', '남구', '동구', '북구', '서구'])
+
+export function educationOfficeOf(r: RegionChoice): string {
+  if (r.sido === '전남광주통합특별시') return r.district && GWANGJU_DISTRICTS.has(r.district) ? '광주광역시교육청' : '전라남도교육청'
+  return `${r.sido}교육청`
+}
+
 export function regionName(r: RegionChoice): string {
   return r.district ? `${r.sido} ${r.district}` : r.sido
 }
@@ -133,7 +141,7 @@ export function recommendAgencies(
   } else {
     push(
       make(
-        region ? `${region.sido}교육청` : '사는 지역의 시·도교육청',
+        region ? educationOfficeOf(region) : '사는 지역의 시·도교육청',
         'education',
         '학교 운영과 돌봄은 시·도교육청이 처리해요',
         eduEvidence,

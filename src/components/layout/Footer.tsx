@@ -40,7 +40,10 @@ export function Footer() {
                 <dt>기준일</dt>
                 <dd className="tnum text-ink">{meta?.builtAt ? formatDate(meta.builtAt) : '—'}</dd>
                 <dt>분석 답변</dt>
-                <dd className="tnum text-ink">{n(meta?.sourceCount)}건</dd>
+                <dd className="tnum text-ink">
+                  {n(meta?.sourceCount)}건
+                  {meta?.answeredFrom && meta.answeredTo ? ` (${formatDate(meta.answeredFrom)}~${formatDate(meta.answeredTo)} 답변)` : ''}
+                </dd>
                 <dt>안내 사례</dt>
                 <dd className="tnum text-ink">{n(meta?.caseCount)}건 · 기관 {n(meta?.agencyCount)}곳</dd>
               </dl>
@@ -48,7 +51,10 @@ export function Footer() {
             <div>
               <h3 className="text-[13px] font-extrabold text-ink">이용 안내</h3>
               <p className="mt-2">이 서비스의 안내는 공개된 답변 사례를 집계한 참고 정보이며 법적 효력이 없어요. 최종 판단은 담당기관의 답변에 따라요.</p>
-              <p className="mt-2">예상 처리기간, 법령 개정 정보, 같은 고민 참여 현황은 시연용 정보예요. 실제 처리 상황이나 최신 정보와 다를 수 있어요.</p>
+              <p className="mt-2">
+                예상 처리기간은 공개 답변의 처리일수로 계산한 참고값이고, 법령 개정 정보는{' '}
+                {meta?.lawCheckedAt ? `${formatDate(meta.lawCheckedAt)} ` : ''}법제처 조회 기준이에요. 같은 고민 참여 현황은 시연용 정보예요.
+              </p>
             </div>
             <div>
               <h3 className="text-[13px] font-extrabold text-ink">개인정보·접근성</h3>

@@ -7,6 +7,12 @@ export type CaseKind = 'case' | 'policy'
 export interface LawRef {
   name: string
   article: string
+  /** 답변일 이후 바뀐 날 (법제처 조회 기준). 없으면 바뀌지 않았거나 확인할 수 없음 */
+  changedAt?: string
+  /** article: 인용한 조문이 개정됨 / law: 법령은 개정됐지만 그 조문이 바뀌었는지는 확인하지 못함 */
+  changeScope?: 'article' | 'law'
+  /** 국가법령정보센터 본문 주소. 없으면 법령명 검색으로 연결 */
+  link?: string
 }
 
 /** 국민신문고 질의응답 1건 (public/data/cases.json) */
@@ -65,6 +71,12 @@ export interface DataMeta {
   caseCount: number
   policyCount: number
   agencyCount: number
+  featuredCount?: number
+  /** 원본 답변일 범위 */
+  answeredFrom?: string
+  answeredTo?: string
+  /** 법령 개정 여부를 법제처에서 확인한 날 */
+  lawCheckedAt?: string
   topics: Record<string, { label: string; group: string }>
   builtAt: string
   source: string
@@ -91,7 +103,8 @@ export interface LawAmendment {
 
 export interface LawStatus {
   law: LawRef
-  status: 'amended' | 'unchanged' | 'unknown'
+  /** amended: 인용 조문 개정 / lawAmended: 법령만 개정 확인(조문은 미확인) */
+  status: 'amended' | 'lawAmended' | 'unchanged'
   amendment?: LawAmendment
   link: string
 }

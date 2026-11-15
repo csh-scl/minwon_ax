@@ -30,7 +30,7 @@ export function LawChips({ item, max = 3, showArticle = false }: LawChipsProps) 
               'inline-flex h-7 max-w-full items-center rounded-full px-2.5 text-[12px] font-semibold',
               s.status === 'amended' ? 'bg-signal-tint text-signal-deep' : 'bg-surface-2 text-ink-muted hover:bg-surface-3 hover:text-ink',
             )}
-            title={s.status === 'amended' ? '답변 이후 개정된 법령' : s.law.article || s.law.name}
+            title={s.status === 'amended' ? '답변 이후 인용한 조문이 개정된 법령' : s.status === 'lawAmended' ? '답변 이후 개정된 법령 (인용 조문 변경은 확인 필요)' : s.law.article || s.law.name}
           >
             <span className="truncate">
               {s.law.name}

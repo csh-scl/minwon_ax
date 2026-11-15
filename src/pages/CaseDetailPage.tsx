@@ -21,6 +21,9 @@ import { AGENCY_TYPE_LABEL, AGENCY_TYPE_SHORT } from '@/services/recommendationS
 import { relatedCases } from '@/services/searchService'
 import type { AgencyType } from '@/types'
 
+/** 국민신문고 '민원 사례 검색'. 사례 상세는 주소로 바로 열 수 없어 검색 화면으로 보냅니다. */
+const EPEOPLE_CASE_SEARCH = 'https://www.epeople.go.kr/nep/pttn/gnrlPttn/pttnSmlrCaseList.npaid'
+
 const TYPE_BADGE: Record<AgencyType, 'compass' | 'mint' | 'peach'> = { central: 'compass', local: 'mint', education: 'peach' }
 
 export function CaseDetailPage() {
@@ -90,19 +93,15 @@ export function CaseDetailPage() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
           <div className="min-w-0">
             <section>
-              <div className="flex items-baseline justify-between">
-                <h2 className="text-[18px] font-extrabold">답변 내용</h2>
-                <span className="text-[12.5px] text-ink-faint">국민신문고 공개 답변 원문</span>
-              </div>
+              <h2 className="text-[18px] font-extrabold">답변 내용</h2>
+              <p className="mt-1 text-[13px] text-ink-faint">국민신문고에 공개된 답변 원문이에요</p>
               <div className="mt-3 whitespace-pre-line rounded-card bg-surface-2 p-5 text-[15.5px] leading-7 md:p-7">{item.answer}</div>
             </section>
 
             {item.laws.length > 0 && (
               <section className="mt-8">
-                <div className="flex items-baseline justify-between">
-                  <h2 className="text-[18px] font-extrabold">답변에 인용된 법령</h2>
-                  <span className="text-[12.5px] text-ink-faint">누르면 국가법령정보센터로 이동</span>
-                </div>
+                <h2 className="text-[18px] font-extrabold">답변에 인용된 법령</h2>
+                <p className="mt-1 text-[13px] text-ink-faint">법령을 누르면 국가법령정보센터에서 원문을 볼 수 있어요</p>
                 <div className="mt-3">
                   <LawChips item={item} max={12} showArticle />
                 </div>
@@ -113,10 +112,27 @@ export function CaseDetailPage() {
             )}
 
             <p className="mt-8 text-[12.5px] leading-relaxed text-ink-faint">
-              출처: 국민권익위원회 국민신문고 공개 질의응답 원문데이터. 참조번호 <span className="tnum break-all">{item.ref}</span>. 답변 당시 기준이라 이후 제도가
-              바뀌었을 수 있어요.{' '}
-              <a href="https://www.epeople.go.kr/nep/pttn/gnrlPttn/pttnQnaList.npaid" target="_blank" rel="noreferrer noopener" className="font-bold text-compass hover:underline">
-                국민신문고에서 원문 찾기
+              출처: 국민권익위원회 국민신문고 공개 질의응답 원문데이터
+              {/^\d?[A-Z]{2,3}-/.test(item.ref) ? (
+                <>
+                  {' '}
+                  (처리번호 <span className="tnum break-all">{item.ref}</span>)
+                </>
+              ) : null}
+              . 답변 당시 기준이라 이후 제도가 바뀌었을 수 있어요.{' '}
+              <a
+                href={EPEOPLE_CASE_SEARCH}
+                target="_blank"
+                rel="noreferrer noopener"
+                onClick={() => {
+                  navigator.clipboard?.writeText(item.title).then(
+                    () => toast('제목을 복사했어요. 국민신문고 검색창에 붙여 넣어 찾아보세요'),
+                    () => undefined,
+                  )
+                }}
+                className="font-bold text-compass hover:underline"
+              >
+                국민신문고 민원 사례 검색에서 찾기
               </a>
             </p>
           </div>

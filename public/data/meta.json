@@ -1,9 +1,9 @@
 {
- "sourceCount": 21845,
- "caseCount": 938,
- "policyCount": 208,
+ "sourceCount": 35246,
+ "caseCount": 960,
+ "policyCount": 157,
  "featuredCount": 180,
- "agencyCount": 285,
+ "agencyCount": 385,
  "topics": {
   "housing-rent": {
    "label": "전월세·보증금",
@@ -115,5 +115,8 @@
   }
  },
  "builtAt": "2026-11-15",
- "source": "국민권익위원회 국민신문고 민원질의응답 원문데이터(공공데이터포털)"
+ "answeredFrom": "2024-08-26",
+ "answeredTo": "2026-08-24",
+ "lawCheckedAt": "2026-11-09",
+ "source": "국민권익위원회 국민신문고 민원질의응답 원문데이터(공공데이터포털) 정제본 · 법령 개정 정보: 법제처 국가법령정보"
 }

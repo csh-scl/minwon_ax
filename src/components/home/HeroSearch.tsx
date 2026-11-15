@@ -76,7 +76,7 @@ export function HeroSearch({ value, onChange, onSubmit }: HeroSearchProps) {
     <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-12">
       <div className="min-w-0">
         <p className="inline-flex items-center rounded-full bg-surface px-3 py-1.5 text-[13px] font-bold text-compass shadow-card">
-          국민신문고 답변 2만 건으로 길을 찾아요
+          국민신문고 답변 3만 5천 건으로 길을 찾아요
         </p>
         <h1 className="mt-5 text-[34px] font-extrabold leading-[1.18] tracking-[-0.025em] md:text-[48px]">
           민원 넣기 전에,

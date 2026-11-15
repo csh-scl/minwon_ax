@@ -59,9 +59,9 @@ export function SummaryCard({ summary, recommendation, groupLabel, groupJoined, 
         <>
           답변의 <b className="tnum">{freshPct}%</b>가 최근 6개월 이내 최신 답변이에요
           {summary.lawChanged > 0 ? (
-            <span className="text-signal-deep">. {summary.lawChanged}건은 답변 뒤에 관련 법령이 바뀌었어요</span>
+            <span className="text-signal-deep">. {summary.lawChanged}건은 답변 뒤에 인용한 조문이 바뀌었어요</span>
           ) : (
-            <span className="text-ink-muted">. 제공된 자료에서는 답변 이후의 법령 개정 내역이 확인되지 않아요</span>
+            <span className="text-ink-muted">. 답변 뒤에 인용한 조문이 바뀐 사례는 없어요</span>
           )}
         </>
       ),

@@ -2,7 +2,7 @@ import { Icon } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
 import { calendarDaysBetween, todayISO } from '@/lib/businessDays'
 import { formatDate } from '@/lib/format'
-import { FRESH_MONTHS, agoLabel, amendedLaws, freshnessOf } from '@/services/lawService'
+import { FRESH_MONTHS, agoLabel, amendedLaws, freshnessOf, lawLevelChanges } from '@/services/lawService'
 import type { CaseItem } from '@/types'
 
 /**
@@ -15,14 +15,15 @@ export function FreshnessTimeline({ item }: { item: CaseItem }) {
   const fresh = freshnessOf(item)
   const ago = agoLabel(fresh.months)
   const changes = amendedLaws(item).filter((c) => c.amendedAt > item.answeredAt && c.amendedAt <= today)
+  const lawOnly = lawLevelChanges(item).filter((c) => c.amendedAt > item.answeredAt && c.amendedAt <= today)
   const span = Math.max(1, calendarDaysBetween(item.answeredAt, today))
   const pos = (iso: string) => Math.min(100, Math.max(0, (calendarDaysBetween(item.answeredAt, iso) / span) * 100))
 
   const verdict =
     changes.length > 0
-      ? { tone: 'signal', icon: 'alert' as const, text: `답변 뒤에 관련 법령 ${changes.length}건이 바뀌었어요. 최신 법령을 꼭 확인하세요.` }
+      ? { tone: 'signal', icon: 'alert' as const, text: `답변 뒤에 인용한 조문이 바뀐 법령이 ${changes.length}건 있어요. 최신 법령을 꼭 확인하세요.` }
       : fresh.level === 'fresh'
-        ? { tone: 'mint', icon: 'check' as const, text: `${ago} 답변이에요. 제공된 자료에서는 이후 법령 개정 내역이 확인되지 않아요.` }
+        ? { tone: 'mint', icon: 'check' as const, text: `${ago} 답변이에요. 답변 뒤에 인용한 조문이 바뀐 내역은 확인되지 않아요.` }
         : fresh.level === 'check'
           ? { tone: 'amber', icon: 'info' as const, text: `${ago} 답변이에요. 제도는 그대로일 수 있지만 담당 부서에 한 번 더 확인하면 좋아요.` }
           : { tone: 'slate', icon: 'clock' as const, text: `${ago} 답변이에요. 1년이 지난 안내라 지금과 다를 수 있어요.` }
@@ -77,8 +78,23 @@ export function FreshnessTimeline({ item }: { item: CaseItem }) {
         <Icon name={verdict.icon} size={17} className="mt-0.5 shrink-0" />
         {verdict.text}
       </p>
+      {lawOnly.length > 0 && (
+        <p className="mt-3 text-[13.5px] leading-relaxed text-ink-muted">
+          {lawOnly.map((c, i) => (
+            <span key={c.name}>
+              {i > 0 && ', '}「{c.name}」
+            </span>
+          ))}
+          은 답변 뒤에 개정됐어요(시행 <span className="tnum">{formatDate(lawOnly[0].amendedAt)}</span>
+          {lawOnly.length > 1 ? ' 등' : ''}). 인용한 조문이 바뀌었는지는{' '}
+          <a href={lawOnly[0].link} target="_blank" rel="noreferrer noopener" className="font-semibold text-compass underline-offset-2 hover:underline">
+            법령 원문
+          </a>
+          에서 확인해 주세요.
+        </p>
+      )}
       <p className="mt-3 text-[12.5px] leading-relaxed text-ink-faint">
-        판단 기준: 답변 뒤 인용 법령이 바뀌면 <b className="font-semibold text-ink-muted">법령 변경</b>, 그렇지 않으면 답변일부터{' '}
+        판단 기준: 답변 뒤 인용한 조문이 바뀌면 <b className="font-semibold text-ink-muted">법령 변경</b>, 그렇지 않으면 답변일부터{' '}
         {FRESH_MONTHS}개월 이내 <b className="font-semibold text-ink-muted">최신 답변</b> · {FRESH_MONTHS}개월~1년{' '}
         <b className="font-semibold text-ink-muted">확인 권장</b> · 1년 초과 <b className="font-semibold text-ink-muted">1년 지난 답변</b>
       </p>
