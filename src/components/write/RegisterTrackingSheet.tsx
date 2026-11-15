@@ -95,7 +95,7 @@ export function RegisterTrackingSheet({ open, onClose, defaults, agencyNames, on
           <Field label="접수일" htmlFor="trk-date" required>
             <Input id="trk-date" type="date" value={receivedAt} max={todayISO()} onChange={(e) => setReceivedAt(e.target.value)} />
           </Field>
-          <Field label="기준 처리기간(영업일)" htmlFor="trk-days" required>
+          <Field label="처리기간(영업일)" htmlFor="trk-days" required>
             <Input id="trk-days" type="number" min={1} max={90} value={expected} onChange={(e) => setExpected(e.target.value)} />
           </Field>
         </div>
