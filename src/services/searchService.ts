@@ -81,8 +81,9 @@ export async function searchCases(query: string, opts: SearchOptions = {}): Prom
       score += 1.0 * dice(qBigrams, e.titleBigrams)
       score += 0.02 * Math.log10(e.item.views + 1)
     } else {
-      // 질의 없이 주제만 고른 경우: 조회수 순
+      // 질의 없이 주제만 고른 경우: 분야별 대표 사례를 먼저, 나머지는 조회수 순
       score = 0.3 + 0.1 * Math.log10(e.item.views + 1)
+      if (e.item.featuredRank) score += 10 - e.item.featuredRank * 0.01
     }
     if (score <= 0.05) continue
     hits.push({ item: e.item, score, matched })

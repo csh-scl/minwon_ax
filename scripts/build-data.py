@@ -3,6 +3,7 @@
 민원나침반 샘플 데이터 빌드 스크립트
 
 입력: data/epeople_faq.json (국민신문고 민원 질의응답 원문, 약 2만 건)
+      data/featured_source.json (분야별 대표 사례 원문, scripts/extract-featured.py 로 만듦)
 출력: public/data/cases.json     - 화면에 쓰는 선별 사례(주제별 표본)
       public/data/agencies.json  - 기관별 통계(건수·유형·처리기간·주요 부서·주요 법령)
       public/data/regions.json   - 시도/시군구 목록(데이터에서 추출 + 보완)
@@ -20,6 +21,7 @@ from datetime import date
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "data", "epeople_faq.json")
+FEATURED_SRC = os.path.join(ROOT, "data", "featured_source.json")
 OUT = os.path.join(ROOT, "public", "data")
 
 SIDO = [
@@ -226,6 +228,69 @@ def stable_int(key: str, lo: int, hi: int) -> int:
     return lo + h % (hi - lo + 1)
 
 
+# 분야(첫 화면 '분야별 찾기' 갈래) -> 그 분야에 속한 주제 slug. src/config/families.ts 와 맞춰 둡니다.
+FAMILY_SLUGS = {
+    "housing": ["housing-rent", "housing-apt", "housing-subscription", "housing-redevelop", "housing-public", "building"],
+    "traffic": ["road", "parking", "transit", "car"],
+    "care": ["care", "school"],
+    "env": ["noise", "waste", "environment"],
+    "town": ["streetlight", "park"],
+    "safety": ["fire", "labor"],
+    "biz": ["tax", "business", "import-food"],
+    "welfare": ["welfare", "documents", "civil-defense", "energy"],
+    "pets": ["pets"],
+}
+# 제목·질문에서 분야 안의 주제를 못 찾으면 붙이는 기본 주제
+FAMILY_DEFAULT_SLUG = {
+    "housing": "building", "traffic": "car", "care": "school", "env": "environment", "town": "park",
+    "safety": "fire", "biz": "business", "welfare": "welfare", "pets": "pets",
+}
+
+
+def load_featured():
+    """data/featured_source.json(분야별 대표 사례 원문)을 cases.json 형식으로 바꿉니다."""
+    if not os.path.exists(FEATURED_SRC):
+        return []
+    with open(FEATURED_SRC, encoding="utf-8") as f:
+        items = json.load(f)
+    out = []
+    for it in items:
+        slugs = FAMILY_SLUGS[it["family"]]
+        topics = [t for t in topics_of(it["title"]) if t in slugs] or [t for t in topics_of(it["title"] + " " + it["question"][:200]) if t in slugs]
+        out.append({
+            "id": f"f{it['answerId']}",
+            "title": norm_ws(it["title"]),
+            "agency": it["agency"],
+            "agencyType": it["agencyType"],
+            "dept": it["dept"],
+            "sido": it["sido"],
+            "kind": "policy" if it["workType"] == "POLICY" else "case",
+            "askedAt": it["askedAt"],
+            "answeredAt": it["answeredAt"],
+            "views": it["views"],
+            "processingDays": days_between(it["askedAt"], it["answeredAt"]),
+            "laws": it["laws"],
+            "summary": summarize(it["answer"]),
+            "answer": clean_answer(it["answer"]),
+            "topics": topics or [FAMILY_DEFAULT_SLUG[it["family"]]],
+            "ref": it["ref"],
+            "featured": it["family"],
+        })
+    # 분야 안에서는 최근 답변이 먼저 보이도록 순위를 매깁니다.
+    by_family = collections.defaultdict(list)
+    for c in out:
+        by_family[c["featured"]].append(c)
+    for lst in by_family.values():
+        lst.sort(key=lambda c: (c["answeredAt"], c["id"]), reverse=True)
+        for i, c in enumerate(lst, 1):
+            c["featuredRank"] = i
+    return out
+
+
+def norm_title(t):
+    return re.sub(r"[^가-힣a-z0-9]", "", t.lower())[:28]
+
+
 def main():
     with open(SRC, encoding="utf-8") as f:
         items = json.load(f)
@@ -275,9 +340,6 @@ def main():
             continue
         scored.append((q, it))
     scored.sort(key=lambda x: -x[0])
-
-    def norm_title(t):
-        return re.sub(r"[^가-힣a-z0-9]", "", t.lower())[:28]
 
     picked = {}
     seen_titles = set()
@@ -351,6 +413,14 @@ def main():
         })
     cases.sort(key=lambda c: c["answeredAt"], reverse=True)
 
+    # ---------- 대표 사례(분야별 20건, scripts/extract-featured.py 로 추출) ----------
+    featured = load_featured()
+    if featured:
+        featured_titles = {norm_title(c["title"]) for c in featured}
+        cases = [c for c in cases if norm_title(c["title"]) not in featured_titles] + featured
+    else:
+        print("주의: data/featured_source.json 이 없어 대표 사례 없이 빌드합니다.")
+
     # ---------- 지역 ----------
     districts = collections.defaultdict(set)
     for a in agencies:
@@ -380,6 +450,7 @@ def main():
         "sourceCount": len(items),
         "caseCount": len(cases),
         "policyCount": sum(1 for c in cases if c["kind"] == "policy"),
+        "featuredCount": sum(1 for c in cases if c.get("featured")),
         "agencyCount": len(agencies),
         "topics": {slug: {"label": label, "group": group} for slug, (label, _, group) in TOPICS.items()},
         "builtAt": date.today().isoformat(),

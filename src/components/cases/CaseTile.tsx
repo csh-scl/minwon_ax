@@ -34,7 +34,7 @@ export function CaseTile({ item, className }: { item: CaseItem; className?: stri
       </h3>
       <p className="mt-2 truncate text-[13px] text-ink-muted">{item.agency}</p>
       <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap pt-4 text-[12.5px] text-ink-faint">
-        <span className="tnum">조회 {formatNumber(item.views)}</span>
+        {item.views > 0 && <span className="tnum">조회 {formatNumber(item.views)}</span>}
         {item.kind === 'policy' ? <span>안내 자료</span> : item.processingDays != null && <span className="tnum">처리 {item.processingDays}일</span>}
         <span className="tnum ml-auto">{formatDate(item.answeredAt)}</span>
       </div>

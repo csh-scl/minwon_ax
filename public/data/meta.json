@@ -1,7 +1,8 @@
 {
  "sourceCount": 21845,
- "caseCount": 780,
- "policyCount": 215,
+ "caseCount": 944,
+ "policyCount": 208,
+ "featuredCount": 180,
  "agencyCount": 285,
  "topics": {
   "housing-rent": {
@@ -113,6 +114,6 @@
    "group": "town"
   }
  },
- "builtAt": "2026-11-09",
+ "builtAt": "2026-11-15",
  "source": "국민권익위원회 국민신문고 민원질의응답 원문데이터(공공데이터포털)"
 }

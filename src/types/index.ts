@@ -27,6 +27,10 @@ export interface CaseItem {
   answer: string
   topics: string[]
   ref: string
+  /** 분야별 대표 사례면 그 분야 key (src/config/families.ts) */
+  featured?: string
+  /** 분야 안에서 보여 줄 순서 (1부터, 최근 답변이 앞) */
+  featuredRank?: number
 }
 
 /** 기관별 통계 (public/data/agencies.json) */
