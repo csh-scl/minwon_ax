@@ -108,15 +108,13 @@ export function TrackForm({ open, onClose, initial, agencies, onSave }: TrackFor
             </Select>
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="접수일" htmlFor="tf-date" required>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[1.5fr_1fr_1fr]">
+          <Field label="접수일" htmlFor="tf-date" required className="col-span-2 sm:col-span-1">
             <Input id="tf-date" type="date" value={f.receivedAt} max={todayISO()} onChange={(e) => set({ receivedAt: e.target.value })} />
           </Field>
-          <Field label="처리기간(영업일)" htmlFor="tf-days" required>
-            <Input id="tf-days" type="number" min={1} max={90} value={f.expected} onChange={(e) => set({ expected: e.target.value })} />
+          <Field label="처리기간" htmlFor="tf-days" required>
+            <Input id="tf-days" type="number" min={1} max={90} value={f.expected} title="영업일 기준" onChange={(e) => set({ expected: e.target.value })} />
           </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
           <Field label="이송 횟수" htmlFor="tf-transfers">
             <Input id="tf-transfers" type="number" min={0} max={20} value={f.transfers} onChange={(e) => set({ transfers: e.target.value })} />
           </Field>
