@@ -44,11 +44,19 @@ export function SummaryCard({ summary, recommendation, groupLabel, groupJoined, 
       text: top ? (
         <>
           {top.agency}의 예상 처리기간은 <b className="tnum">{top.expectedBusinessDays}영업일</b>이에요
-          {summary.medianDays != null && <span className="text-ink-muted">. 공개 사례의 처리기간 중앙값은 {summary.medianDays}일</span>}
+          {summary.medianDays != null && <span className="text-ink-muted">. {summary.medianDays <= 0 ? '비슷한 사례는 대부분 당일에 답변을 받았어요' : `비슷한 사례는 답변까지 보통 ${summary.medianDays}일 걸렸어요`}</span>}
         </>
       ) : summary.medianDays != null ? (
         <>
-          공개 사례의 처리기간 중앙값은 <b className="tnum">{summary.medianDays}일</b>이에요
+          {summary.medianDays <= 0 ? (
+            <>
+              비슷한 사례는 대부분 <b>당일</b>에 답변을 받았어요
+            </>
+          ) : (
+            <>
+              비슷한 사례는 답변까지 보통 <b className="tnum">{summary.medianDays}일</b> 걸렸어요
+            </>
+          )}
         </>
       ) : (
         <>아직 예상 처리기간을 안내하기 어려워요. 작성 단계에서 처리기관을 확인해 주세요</>
