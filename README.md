@@ -30,10 +30,26 @@
 
 ## 한눈에 보기
 
-| 분석한 원본 답변 | 처리기관 | 법령을 인용한 답변 | 분야 · 주제 수 |
-| :---: | :---: | :---: | :---: |
-| **35,246건** | **385곳** | **28,209건** | **9개 · 27개** |
-| 2024.08 ~ 2026.08 | 중앙 · 지자체 · 교육청 | 법령 3,075종, 법제처 자료로 법령 개정일 확인 | 주거 · 교통 · 돌봄 · 환경 등 |
+<table width="100%">
+  <tr>
+    <th width="25%" align="center">분석한 원본 답변</th>
+    <th width="25%" align="center">처리기관</th>
+    <th width="25%" align="center">법령을 인용한 답변</th>
+    <th width="25%" align="center">분야 · 주제 수</th>
+  </tr>
+  <tr>
+    <td align="center"><b>35,246건</b></td>
+    <td align="center"><b>385곳</b></td>
+    <td align="center"><b>20,516건</b></td>
+    <td align="center"><b>9개 · 27개</b></td>
+  </tr>
+  <tr>
+    <td align="center">2024.08 ~ 2026.08</td>
+    <td align="center">중앙 · 지자체 · 교육청</td>
+    <td align="center">법령 3,075종, 법제처 자료로 개정일 확인</td>
+    <td align="center">주거 · 교통 · 돌봄 · 환경 등</td>
+  </tr>
+</table>
 
 원본 답변 중 **960건을 선별해 검색과 사례 안내에 사용해요.** 이 가운데 분야별 대표 사례는 180건이에요.
 
@@ -54,10 +70,26 @@
   </tr>
 </table>
 
-| 100일 넘게 걸린 민원 | 100일 넘게 미처리 | 10회 이상 이송 | 5회 이상 이송 |
-| :---: | :---: | :---: | :---: |
-| **6,221건** | **2,220건** | **103건 → 252건** | **4,833건 → 7,911건** |
-| 2022 ~ 2026.08 | 2026.08 말 기준 | 2022 → 2025 | 2022 → 2025 |
+<table width="100%">
+  <tr>
+    <th width="25%" align="center">100일 넘게 걸린 민원</th>
+    <th width="25%" align="center">100일 넘게 미처리</th>
+    <th width="25%" align="center">10회 이상 이송</th>
+    <th width="25%" align="center">5회 이상 이송</th>
+  </tr>
+  <tr>
+    <td align="center"><b>6,221건</b></td>
+    <td align="center"><b>2,220건</b></td>
+    <td align="center"><b>103건 → 252건</b></td>
+    <td align="center"><b>4,833건 → 7,911건</b></td>
+  </tr>
+  <tr>
+    <td align="center">2022 ~ 2026.08</td>
+    <td align="center">2026.08 말 기준</td>
+    <td align="center">2022 → 2025</td>
+    <td align="center">2022 → 2025</td>
+  </tr>
+</table>
 
 민원을 접수하기 전에 **비슷한 답변과 처리기관, 필요한 정보를 확인하면** 반복 문의나 이송에 따른 불편을 줄이는 데 도움이 됩니다.
 
@@ -69,7 +101,7 @@
 | 지역·대상·시점이 빠진 민원 | 기관 유형에 맞는 **필수 정보를 점검**하고 초안을 만들어 줘요 |
 | 처리가 지연될 때 무엇을 확인하고 어떻게 대응할지 알기 어려움 | **처리 경과를 확인**하고, 지연 시 대응 방법과 **공동민원 문서 작성**을 안내해요 |
 
-정부의 AI 국민신문고는 민원을 *처리하는 쪽*(공무원)을 돕습니다. 민원나침반은 같은 공공데이터로 민원을 *내는 쪽*(시민)을 돕습니다.
+정부의 AI 국민신문고가 민원을 처리하는 공무원을 돕는다면, 민원나침반은 민원을 제기하는 시민의 첫걸음을 돕습니다.
 
 <br />
 
@@ -271,16 +303,6 @@ npm install
 npm run dev          # 개발 서버 → http://localhost:5173
 npm run build        # 타입 검사 + 프로덕션 빌드 → dist/
 npm run preview      # 빌드 결과 미리보기
-```
-
-서비스 데이터를 다시 만들 때 (Python 3 필요)
-
-```bash
-# 민원 DB 테이블 CSV → data/minwon_db.json
-python3 -I scripts/import-db.py <테이블_CSV 폴더>
-
-# data/minwon_db.json → public/data/*.json
-npm run data
 ```
 
 `main` 브랜치에 올리면 Vercel이 자동으로 빌드·배포해요.
