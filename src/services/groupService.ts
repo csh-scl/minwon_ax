@@ -9,9 +9,9 @@ import type { CaseItem, ConcernGroup } from '@/types'
  * 같은 고민 모아보기·공동 대응.
  * 게시글 없이 "나도 같은 문제예요" 참여만 집계합니다. 지금은 localStorage, 실제로는 서버 집계.
  */
-const KEY = 'minwon-compass.groups.v3'
-const JOIN_KEY = 'minwon-compass.joined.v3'
-const SUBMIT_KEY = 'minwon-compass.submitted.v3'
+const KEY = 'minwon-compass.groups.v4'
+const JOIN_KEY = 'minwon-compass.joined.v4'
+const SUBMIT_KEY = 'minwon-compass.submitted.v4'
 
 export function listGroups(): ConcernGroup[] {
   const stored = readJSON<ConcernGroup[] | null>(KEY, null)
