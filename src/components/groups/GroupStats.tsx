@@ -19,7 +19,7 @@ export function GroupStats({ group }: { group: ConcernGroup }) {
         지연·이송 <span className={cn('font-bold', group.delayed > 0 ? 'text-signal-deep' : 'text-ink')}>{group.delayed}건</span>
       </p>
       <p className="mt-2 text-[13px] text-ink-muted">
-        {reached ? <span className="font-bold text-mint-deep">공동민원 문서를 만들 수 있어요</span> : <>{remaining}명 더 모이면 공동민원 문서를 만들어 드려요</>}
+        {group.filed ? <span className="font-bold text-compass-deep">공동민원을 제출했어요. 기관 답변을 기다리고 있어요</span> : reached ? <span className="font-bold text-mint-deep">공동민원 문서를 만들 수 있어요</span> : <>{remaining}명 더 모이면 공동민원 문서를 만들어 드려요</>}
       </p>
     </div>
   )

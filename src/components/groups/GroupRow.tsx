@@ -21,7 +21,11 @@ export function GroupRow({ group, joined, onToggleJoin }: GroupRowProps) {
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px]">
           <span className="font-bold text-ink-muted">{topicLabel(group.topic)}</span>
-          {reached && <span className="rounded-full bg-mint-tint px-2 py-0.5 text-[11.5px] font-bold text-mint-deep">공동민원 문서 준비됨</span>}
+          {group.filed ? (
+            <span className="rounded-full bg-compass-tint px-2 py-0.5 text-[11.5px] font-bold text-compass-deep">공동민원 제출됨 · 처리 중</span>
+          ) : (
+            reached && <span className="rounded-full bg-mint-tint px-2 py-0.5 text-[11.5px] font-bold text-mint-deep">공동민원 문서 준비됨</span>
+          )}
         </div>
         <h3 className="mt-1.5 text-[17px] font-extrabold leading-snug tracking-tight md:text-[18px]">
           <Link to={`/groups/${group.id}`} className="hover:text-compass-deep">

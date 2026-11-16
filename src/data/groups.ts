@@ -55,6 +55,7 @@ export const GROUP_SEED: ConcernGroup[] = [
     delayed: 4,
     threshold: 30,
     createdAt: '2026-08-11',
+    filed: { at: '2026-11-04', receiptNo: '1AA-2611-0398215' },
   },
   {
     id: 'g-streetlight',

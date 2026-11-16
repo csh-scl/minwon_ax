@@ -196,4 +196,6 @@ export interface ConcernGroup {
   delayed: number
   threshold: number
   createdAt: string
+  /** 대표자가 공동민원을 국민신문고에 제출한 기록. 있으면 '제출됨(처리 중)' 단계예요. */
+  filed?: { at: string; receiptNo: string }
 }

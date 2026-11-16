@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CaseTile } from '@/components/cases/CaseTile'
+import { FiledProgress } from '@/components/groups/FiledProgress'
 import { GroupStats } from '@/components/groups/GroupStats'
 import { JointDocument } from '@/components/groups/JointDocument'
 import { BottomBar } from '@/components/layout/BottomBar'
@@ -86,6 +87,12 @@ export function GroupDetailPage() {
       <Container className="mt-8">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
           <div className="min-w-0">
+            {group.filed && (
+              <section className="mb-12">
+                <SectionHead sub="대표자가 제출한 공동민원이 지금 어디까지 왔는지 보여 줘요.">공동민원 진행 상황</SectionHead>
+                <FiledProgress filed={group.filed} agency={group.agency} threshold={group.threshold} />
+              </section>
+            )}
             <section>
               <SectionHead sub="국민신문고 공개 답변 중 이 고민과 관련된 사례를 모았어요.">참고할 민원 사례</SectionHead>
               {evidence.loading ? (
@@ -106,7 +113,7 @@ export function GroupDetailPage() {
             </section>
 
             <section className="mt-12">
-              <SectionHead sub="참여자 현황, 제출·지연 건수, 공동 요청사항을 담아요.">공동민원 문서</SectionHead>
+              <SectionHead sub={group.filed ? '대표자가 국민신문고에 제출한 문서예요.' : '참여자 현황, 제출·지연 건수, 공동 요청사항을 담아요.'}>공동민원 문서</SectionHead>
               {reached ? (
                 <JointDocument text={doc} filename={`공동민원_${group.title.replace(/[\\/:*?"<>|]/g, '')}.txt`} />
               ) : (

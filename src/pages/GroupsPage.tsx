@@ -7,7 +7,7 @@ import { useToast } from '@/context/ToastContext'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useGroups } from '@/hooks/useGroups'
 
-type Filter = 'all' | 'open' | 'ready' | 'mine'
+type Filter = 'all' | 'open' | 'ready' | 'filed' | 'mine'
 
 /** 같은 고민: 그룹 목록이 주인공. 머리는 제목과 한 문장, 그 아래 탭으로 거릅니다. */
 export function GroupsPage() {
@@ -17,14 +17,17 @@ export function GroupsPage() {
   useDocumentTitle('같은 고민')
 
   const sorted = [...groups].sort((a, b) => b.members - a.members)
-  const ready = sorted.filter((g) => g.members >= g.threshold)
+  const open = sorted.filter((g) => g.members < g.threshold)
+  const ready = sorted.filter((g) => g.members >= g.threshold && !g.filed)
+  const filed = sorted.filter((g) => g.filed)
   const mine = sorted.filter((g) => joined.includes(g.id))
-  const visible = filter === 'ready' ? ready : filter === 'open' ? sorted.filter((g) => g.members < g.threshold) : filter === 'mine' ? mine : sorted
+  const visible = { all: sorted, open, ready, filed, mine }[filter]
 
   const tabs: TabItem<Filter>[] = [
     { key: 'all', label: '전체', count: sorted.length },
-    { key: 'open', label: '참여자 모집 중', count: sorted.length - ready.length },
+    { key: 'open', label: '참여자 모집 중', count: open.length },
     { key: 'ready', label: '문서 준비됨', count: ready.length },
+    { key: 'filed', label: '제출됨', count: filed.length },
     { key: 'mine', label: '참여 중', count: mine.length },
   ]
 
