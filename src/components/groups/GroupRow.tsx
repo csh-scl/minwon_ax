@@ -50,18 +50,29 @@ export function GroupRow({ group, joined, onToggleJoin }: GroupRowProps) {
           </p>
           <ProgressBar value={group.members / group.threshold} tone={reached ? 'moss' : 'compass'} className="mt-2" label="공동민원 참여 진행" />
         </div>
-        <Button variant={joined ? 'secondary' : 'outline'} size="md" onClick={onToggleJoin} aria-pressed={joined} className="shrink-0 md:hidden">
-          <Icon name={joined ? 'check' : 'plus'} size={14} />
-          {joined ? '참여 중' : '같은 문제예요'}
-        </Button>
+        <JoinButton joined={joined} onClick={onToggleJoin} label="같은 문제예요" className="shrink-0 md:hidden" />
       </div>
 
       <div className="hidden md:block">
-        <Button variant={joined ? 'secondary' : 'outline'} size="md" onClick={onToggleJoin} aria-pressed={joined}>
-          <Icon name={joined ? 'check' : 'plus'} size={14} />
-          {joined ? '참여 중' : '나도 같은 문제예요'}
-        </Button>
+        <JoinButton joined={joined} onClick={onToggleJoin} label="나도 같은 문제예요" />
       </div>
     </article>
+  )
+}
+
+/** 참여 버튼. '참여 중'으로 바뀌어도 버튼 폭이 그대로여야 옆의 진행 막대가 밀리지 않아요.
+ *  두 문구를 같은 칸에 겹쳐 두고 안 보이는 쪽은 숨겨서, 항상 긴 문구 폭을 유지해요. */
+function JoinButton({ joined, onClick, label, className }: { joined: boolean; onClick: () => void; label: string; className?: string }) {
+  return (
+    <Button variant={joined ? 'secondary' : 'outline'} size="md" onClick={onClick} aria-pressed={joined} className={cn(joined && 'border border-transparent', className)}>
+      <span className="grid">
+        {[false, true].map((state) => (
+          <span key={String(state)} aria-hidden={state !== joined} className={cn('col-start-1 row-start-1 inline-flex items-center justify-center gap-1.5', state !== joined && 'invisible')}>
+            <Icon name={state ? 'check' : 'plus'} size={14} />
+            {state ? '참여 중' : label}
+          </span>
+        ))}
+      </span>
+    </Button>
   )
 }
