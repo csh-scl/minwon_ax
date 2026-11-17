@@ -16,7 +16,7 @@ const GUIDES = {
       '연장 통지가 없다면 담당 부서에 처리 현황과 예정일을 문의할 수 있어요. 답변에 적힌 담당 연락처를 쓰면 돼요.',
       '이송이 반복되면 "민원 이송 내역"에서 어느 기관으로 넘어갔는지 보고, 마지막 기관을 추적 정보에 반영해 두세요.',
     ],
-    link: { href: 'https://www.epeople.go.kr/nep/pttn/myPttn/myPttnList.npaid', label: '국민신문고에서 내 민원 보기' },
+    link: { href: 'https://www.epeople.go.kr/nep/utilHistory/mySmgPttn/mySmgPttnList.paid', label: '국민신문고에서 내 민원 보기' },
     law: '민원 처리에 관한 법률 제21조(처리기간의 연장), 제16조(민원의 이송)',
   },
   acrc: {

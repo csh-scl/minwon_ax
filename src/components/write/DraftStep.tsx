@@ -17,7 +17,7 @@ interface DraftStepProps {
   onRegister: () => void
 }
 
-export const EPEOPLE_URL = 'https://www.epeople.go.kr/nep/pttn/gnrlPttn/pttnQnaApplicationForm.npaid'
+export const EPEOPLE_URL = 'https://www.epeople.go.kr/index.jsp'
 
 export function DraftStep({ draft, onChange, agency, expectedDays, onBack, onRegenerate, onRegister }: DraftStepProps) {
   const { toast } = useToast()
