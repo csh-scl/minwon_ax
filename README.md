@@ -9,7 +9,7 @@
 국민신문고 답변 3만 5천 건을 바탕으로 비슷한 민원의 답변을 찾고,<br />
 처리기관과 예상 처리기간을 안내하며, 민원 초안 작성부터 접수 후 관리까지 돕는 시민용 민원 도우미
 
-**[서비스 바로가기 → minwon-ax.vercel.app](https://minwon-ax.vercel.app)**
+**[서비스 바로가기 → minwon-ax.vercel.app](https://minwon-ax.vercel.app)**　·　**[시연 영상 보기 → YouTube](https://youtu.be/4o-kvOx1Ugw)**
 
 <br />
 
